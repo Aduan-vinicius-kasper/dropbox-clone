@@ -1,0 +1,102 @@
+var express = require('express');
+var router = express.Router();
+var formidable = require('formidable');
+var fs = require('fs')
+
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'Express' });
+});
+
+//criando uma nova rota para enviar/postar para /uploads
+router.post('/upload', (req,res)=>{
+ 
+  // criando uma nova instancia que chama um formulário 
+  let form = new formidable.IncomingForm({
+   
+    // primeiro chamando um diretório
+    uploadDir: './upload',
+   
+ // mantendo as extensões 
+    keepExtensions: true
+  });
+  // fazendo um parse do form
+    form.parse(req, (err,fields, files)=>{
+
+      res.json({
+        // files : files quando os dois tem o mesmo nome será só
+        files
+      });
+    })
+ 
+
+});
+router.get('/file', (req,res)=>{
+
+let path ='./' + req.query.path;
+if(fs.existsSync(path)){
+
+
+    fs.readFile(path, (err, data) =>{
+      if(err){
+        console.error(err);
+        res.status(404).json({
+            error:err
+        });
+      } else{
+        res.status(200).end(data)
+      }
+    })
+} else{
+
+    res.status(404).json({
+      error: 'file not found.'
+    })
+}
+
+});
+
+router.delete('/file', (req , res)=>{
+  let form = new formidable.IncomingForm({
+   
+    // primeiro chamando um diretório
+    uploadDir: './',
+   
+ // mantendo as extensões 
+    keepExtensions: true
+  });
+  // fazendo um parse do form
+    form.parse(req, (err,fields, files)=>{
+
+      let path = './' + fields.path;
+
+    if(fs.existsSync(path)){
+      fs.unlink(path, err =>{
+        if(err){
+
+          res.status(400).json({
+            // err : err um err
+            err
+          });
+        } else{
+          res.json({
+            // files : files quando os dois tem o mesmo nome será só
+            fields
+          });
+        }
+      });
+      
+    }else{
+
+      res.status(404).json({
+        error: 'file not found.'
+      })
+  }
+     
+    })
+ 
+});
+
+
+module.exports = router;
